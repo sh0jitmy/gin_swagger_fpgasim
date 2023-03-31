@@ -1,4 +1,4 @@
-module github.com/shjtmy/goswagger
+module github.com/sh0jitmy/gin_swagger_fpgasim
 
 go 1.19
 

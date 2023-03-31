@@ -7,7 +7,7 @@ import (
         "syscall"
         "unsafe"	
 	"gopkg.in/yaml.v2"
-	"github.com/shjtmy/gin_swagger_fpgasim/pkg/model"
+	"github.com/sh0jitmy/gin_swagger_fpgasim/pkg/model"
 )
 
 const ADDRBITMASK = 0xFFFF //64KByte
