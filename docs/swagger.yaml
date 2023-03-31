@@ -1,0 +1,41 @@
+basePath: /
+definitions:
+  main.Account:
+    properties:
+      id:
+        example: 1
+        type: integer
+      name:
+        example: account name
+        type: string
+    type: object
+host: localhost:33333
+info:
+  contact:
+    email: support@swagger.io
+    name: APIサポーター
+    url: http://www.swagger.io/support
+  description: 仕様書に関する内容説明
+  license:
+    name: ライセンス(必須)
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: 仕様書使用する際の注意事項
+  title: APIドキュメントのタイトル
+  version: バージョン(1.0)
+paths:
+  /test/:
+    get:
+      consumes:
+      - application/x-json-stream
+      description: テスト用APIの詳細
+      parameters:
+      - description: 必須ではありません。
+        in: query
+        name: none
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Account'
+swagger: "2.0"
