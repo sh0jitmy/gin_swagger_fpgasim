@@ -1,7 +1,9 @@
 package dao
 
 import (
+	"time"
         "log"
+        "errors"
         "math"
         "os"
         "syscall"
@@ -9,6 +11,7 @@ import (
         "strconv"	
 	"gopkg.in/yaml.v2"
 	"github.com/sh0jitmy/gin_swagger_fpgasim/pkg/model"
+	"github.com/sh0jitmy/gin_swagger_fpgasim/pkg/util"
 )
 
 const ADDRBITMASK = 0xFFF //64KByte
@@ -26,13 +29,14 @@ type RegEntry struct {
 	PropName string `yaml:propname`
 	RegName string  `yaml:regname`
 	AddrOffset int32  `yaml:addroffset`
-	InitValue uint32  `yaml:initvalue`
+	RegValue uint32  `yaml:initvalue`
+	UpdatedAt time.Time 
 }
 
 type PLRegDao struct {
 	conf string
-	reglist[] RegEntry //key propname, value regentry
-	propmap map[string] int
+	regList[] RegEntry 
+	propmap map[string] int //key propname ,value regentry index
 	regbase []uint32
 }
 
@@ -53,9 +57,10 @@ func (d *PLRegDao) Initialize() (error){
 	}	
 	for i,v := range cd.RegList {
 		d.propmap[v.PropName] = i
-		//log.Printf("addr:%v,value:%v\n",v.AddrOffset,v.InitValue)
-		d.regbase[v.AddrOffset] = v.InitValue	
-		d.reglist = append(d.reglist,v)
+		//log.Printf("addr:%v,value:%v\n",v.AddrOffset,v.RegValue)
+		d.regbase[v.AddrOffset] = v.RegValue	
+		v.UpdatedAt = util.TimeNow()	
+		d.regList = append(d.regList,v)
 	}
 	return nil
 }
@@ -64,23 +69,49 @@ func (d *PLRegDao) GetAll()([]model.Property,error) {
 	var tmpprop model.Property
 	var props []model.Property		
 	
-	for _,v := range d.reglist {
+	for _,v := range d.regList {
 		tmpprop.ID = v.PropName
 		tmpprop.Value = strconv.FormatUint(uint64(d.regbase[v.AddrOffset]),DECMODE)
+		if (d.regbase[v.AddrOffset] != v.RegValue) {
+			v.RegValue = d.regbase[v.AddrOffset]
+			v.UpdateAt = util.TimeNow()
+		}
+		tmpprop.UpdateAt = d.regList[val].UpdateAt
 		props = append(props,tmpprop)
 	}
 	return props,nil
 }
 
-/*
 func (d *PLRegDao) Get(id string)(model.Property,error) {
-
+	var tmpprop model.Property
+	if val, ok := d.propmap[id]; ok {
+		tmpprop.ID = id
+		tmpprop.Value = strconv.FormatUint(uint64(d.regbase[d.regList[val].AddrOffset]),DECMODE)
+		if (d.regbase[d.regList[val].AddrOffset] != d.regList[val].RegValue) {
+			d.regList[val].RegValue = d.regbase[d.regList[val].AddrOffset]
+			d.regList[val].UpdateAt = util.TimeNow()
+		}
+		tmpprop.UpdateAt = d.regList[val].UpdateAt
+	} 
+	return tmpprop,nil	
 }
 
-func (d *PLRegDao) Set(prop model.Property)(error) {
-
+func (d *PLRegDao) Set(setp model.Property)(error) {
+	err := errors.New("id is notfound")	
+	if val, ok := d.propmap[setp.ID]; ok {
+		value, cerr  := strconv.ParseUint(setp.Value,DECMODE,32)
+		if cerr  != nil {
+			err = cerr
+		} else {
+			d.regbase[d.regList[val].AddrOffset] = uint32(value) 
+			d.regList[val].RegValue = d.regbase[d.regList[val].AddrOffset]
+			d.regList[val].UpdateAt = util.TimeNow()
+			err = nil
+		}
+	} 
+	return err
 }
-*/
+
 func (d *PLRegDao) IORemapReg32(c Config) ([]uint32,error) {
 	var nildata []uint32
 	f, err := os.OpenFile(c.DevNode,os.O_RDWR | os.O_CREATE,0777)
