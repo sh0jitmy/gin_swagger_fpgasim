@@ -7,10 +7,11 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
 	"net/http"
-	_ "github.com/shjtmy/goswagger/docs"
+	_ "github.com/shjtmy/fpgasim/docs"
 
-	"github.com/shjtmy/fpgasim/repositry"
-	"github.com/shjtmy/fpgasim/model"
+	"github.com/shjtmy/fpgasim/internal/repositry"
+	"github.com/shjtmy/fpgasim/pkg/model"
+	"github.com/shjtmy/fpgasim/pkg/dao"
 )
 
 // @title FPGA APIドキュメントのタイトル
@@ -31,6 +32,7 @@ func main() {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
 	r.GET("/register",getRegister)
+	r.GET("/register/:id",getRegisterID)
 	r.PUT("/register", updateRegister)
 	r.Run(":33333")
 }
@@ -38,10 +40,16 @@ func main() {
 // @version 1.0
 // @accept application/x-json-stream
 // @param none query string false "必須ではありません。"
-// @Success 200 {object} []model.Property 
-// @router /getRegister/ [get]
+// @Success 200 {object} model.Property 
+// @router /getRegister/id [get]
 func getRegister(c *gin.Context){
-	properties := controller.Get()
+	properties := repositry.Get()
+	c.JSON(http.StatusOK, properties)
+}
+
+func getRegisterID(c *gin.Context){
+	idstr := c.Param("id")
+	property := repositry.GetByID(idstr)
 	c.JSON(http.StatusOK, properties)
 }
 
@@ -54,6 +62,6 @@ func getRegister(c *gin.Context){
 // @failuer 500 {object} string  
 // @router /updateRegister/ [put]
 func updateRegister(c *gin.Context){
-	resstring := controller.Update(property)
+	err := repositry.Update(property)
 	c.JSON(http.StatusOK, properties)
 }

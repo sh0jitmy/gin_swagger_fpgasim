@@ -5,8 +5,8 @@ reglist:
   - propname: "frequency"
     regname:  "FPGA_REG_1"
     addroffset: 0
-    initvalue: 225000000 
+    regvalue: 225000000 
   - propname: "emission"
     regname:  "FPGA_REG_2"
     addroffset: 1 
-    initvalue: 8 
+    regvalue: 8 

@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"time"
         "log"
         "errors"
         "math"
@@ -29,8 +28,8 @@ type RegEntry struct {
 	PropName string `yaml:propname`
 	RegName string  `yaml:regname`
 	AddrOffset int32  `yaml:addroffset`
-	RegValue uint32  `yaml:initvalue`
-	UpdatedAt time.Time 
+	RegValue uint32  `yaml:regvalue`
+	UpdatedAt string 
 }
 
 type PLRegDao struct {
@@ -59,7 +58,7 @@ func (d *PLRegDao) Initialize() (error){
 		d.propmap[v.PropName] = i
 		//log.Printf("addr:%v,value:%v\n",v.AddrOffset,v.RegValue)
 		d.regbase[v.AddrOffset] = v.RegValue	
-		v.UpdatedAt = util.TimeNow()	
+		v.UpdatedAt = util.TimeNowString()	
 		d.regList = append(d.regList,v)
 	}
 	return nil
@@ -74,9 +73,9 @@ func (d *PLRegDao) GetAll()([]model.Property,error) {
 		tmpprop.Value = strconv.FormatUint(uint64(d.regbase[v.AddrOffset]),DECMODE)
 		if (d.regbase[v.AddrOffset] != v.RegValue) {
 			v.RegValue = d.regbase[v.AddrOffset]
-			v.UpdateAt = util.TimeNow()
+			v.UpdatedAt = util.TimeNowString()
 		}
-		tmpprop.UpdateAt = d.regList[val].UpdateAt
+		tmpprop.UpdatedAt = v.UpdatedAt
 		props = append(props,tmpprop)
 	}
 	return props,nil
@@ -89,9 +88,9 @@ func (d *PLRegDao) Get(id string)(model.Property,error) {
 		tmpprop.Value = strconv.FormatUint(uint64(d.regbase[d.regList[val].AddrOffset]),DECMODE)
 		if (d.regbase[d.regList[val].AddrOffset] != d.regList[val].RegValue) {
 			d.regList[val].RegValue = d.regbase[d.regList[val].AddrOffset]
-			d.regList[val].UpdateAt = util.TimeNow()
+			d.regList[val].UpdatedAt = util.TimeNowString()
 		}
-		tmpprop.UpdateAt = d.regList[val].UpdateAt
+		tmpprop.UpdatedAt = d.regList[val].UpdatedAt
 	} 
 	return tmpprop,nil	
 }
@@ -105,7 +104,9 @@ func (d *PLRegDao) Set(setp model.Property)(error) {
 		} else {
 			d.regbase[d.regList[val].AddrOffset] = uint32(value) 
 			d.regList[val].RegValue = d.regbase[d.regList[val].AddrOffset]
-			d.regList[val].UpdateAt = util.TimeNow()
+			log.Printf("updatedAt(before):%v\n",d.regList[val].UpdatedAt)
+			d.regList[val].UpdatedAt = util.TimeNowString()
+			log.Printf("updatedAt(after):%v\n",d.regList[val].UpdatedAt)
 			err = nil
 		}
 	} 
