@@ -20,6 +20,7 @@ const DECMODE = 10
 type Config struct {
 	DevNode string `yaml:"devnode"`
 	BaseAddr int64 `yaml:"baseaddr"`
+	Initial bool `yaml:"initial"`
 	DevSize int `yaml:"devsize"`
 	RegList []RegEntry `yaml:inline` 
 }
@@ -120,13 +121,15 @@ func (d *PLRegDao) IORemapReg32(c Config) ([]uint32,error) {
 		log.Fatal(err)
 		return nildata,err
 	}
-	initdata := make([]byte,c.DevSize)
-	_,werr := f.Write(initdata)
-	if werr != nil {
-		log.Fatal(werr)
-		return nildata,werr
+	if c.Initial {
+		log.Println("initial on")
+		initdata := make([]byte,c.DevSize)
+		_,werr := f.Write(initdata)
+		if werr != nil {
+			log.Fatal(werr)
+			return nildata,werr
+		}
 	}
-	
 	offset := int64(c.BaseAddr) &^ ADDRBITMASK
 	data, ferr := syscall.Mmap(int(f.Fd()), offset, (c.DevSize+ADDRBITMASK)&^ADDRBITMASK, 
 		syscall.PROT_READ | syscall.PROT_WRITE, syscall.MAP_SHARED)

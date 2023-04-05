@@ -1,6 +1,7 @@
 devnode: "testdev0"
 baseaddr: 0 
 devsize: 1024
+#initial: true 
 reglist:
   - propname: "frequency"
     regname:  "FPGA_REG_1"
